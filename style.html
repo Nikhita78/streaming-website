@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hotstar Telugu Clone</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: Arial, sans-serif;
+}
+
+body{
+  background:#0f1014;
+  color:#fff;
+}
+
+/* HEADER */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 40px;
+  background:#1f1f1f;
+}
+
+.logo{
+  font-size:26px;
+  font-weight:bold;
+  color:#1f80e0;
+}
+
+nav span{
+  margin-left:25px;
+  cursor:pointer;
+  color:#ccc;
+  padding:6px 12px;
+  border-radius:6px;
+  transition:.3s;
+}
+
+nav span:hover,
+nav span.active{
+  background:#1f80e0;
+  color:#fff;
+}
+
+/* HERO */
+.hero{
+  padding:60px 40px;
+  background:linear-gradient(to right,#1f80e0,#0f1014);
+  text-align:center;
+}
+
+.hero h1{
+  font-size:38px;
+}
+
+.hero p{
+  margin-top:10px;
+  color:#ddd;
+}
+
+/* MOVIES */
+.movies{
+  padding:30px 40px;
+}
+
+.movie-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:25px;
+}
+
+.movie-card{
+  background:#1f1f1f;
+  border-radius:12px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.3s;
+}
+
+.movie-card img{
+  width:100%;
+  display:block;
+  height:320px;
+  object-fit:cover;
+}
+
+.movie-card p{
+  text-align:center;
+  padding:10px;
+  font-weight:bold;
+}
+
+.movie-card:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 20px #1f80e0;
+}
+
+/* PLAYER */
+.player{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.95);
+  z-index:999;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
+
+.player h2{
+  margin-bottom:15px;
+}
+
+.player iframe{
+  width:80%;
+  height:450px;
+  border-radius:10px;
+  border:none;
+}
+
+.close{
+  position:absolute;
+  top:20px;
+  right:30px;
+  font-size:28px;
+  cursor:pointer;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .movie-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:500px){
+  .movie-grid{grid-template-columns:1fr;}
+  .hero h1{font-size:26px;}
+  .player iframe{width:95%;}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">HOTSTAR</div>
+  <nav>
+    <span class="active" onclick="filterMovies('all',this)">Home</span>
+    <span onclick="filterMovies('action',this)">Action</span>
+    <span onclick="filterMovies('drama',this)">Drama</span>
+    <span onclick="filterMovies('thriller',this)">Thriller</span>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Telugu Movies & Entertainment</h1>
+  <p>Action • Drama • Thriller</p>
+</section>
+
+<section class="movies">
+  <div class="movie-grid" id="movieGrid"></div>
+</section>
+
+<!-- PLAYER -->
+<div class="player" id="player">
+  <span class="close" onclick="closePlayer()">✖</span>
+  <h2 id="playerTitle"></h2>
+  <iframe id="videoPlayer" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+
+<script>
+const movies = [
+  {
+    title:"RRR",
+    category:"action",
+    img:"https://m.media-amazon.com/images/M/MV5BNWMwODYyMjQtMTczMi00NTQ1LWFkYjItMGJhMWRkY2E3NDAyXkEyXkFqcGc@._V1_.jpg",
+    video:"https://www.youtube.com/embed/BN1MwXUR3PM"
+  },
+  {
+    title:"Baahubali",
+    category:"action",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa2fZhln004pRmciZlOLZcYIFTx93uPcCC5g&s",
+    video:"https://www.youtube.com/embed/22oYiWnAcKM"
+  },
+  {
+    title:"Pushpa",
+    category:"action",
+    img:"https://i.pinimg.com/736x/94/76/a4/9476a47dd17015484df26e3a0251c607.jpg",
+    video:"https://www.youtube.com/embed/j4FOvZqMy6Q"
+  },
+  {
+    title:"Sye",
+    category:"action",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR16jPaayK1jGZ28qY26MNzkJlhWCVeo0sa-w&s",
+    video:"https://www.youtube.com/embed/UcRQz1MQRk8"
+  },
+  {
+    title:"Jersey",
+    category:"drama",
+    img:"https://images.filmibeat.com/img/popcorn/movie_posters/jersey-20190111113128-17232.jpg",
+    video:"https://www.youtube.com/embed/uqL3WznVBwA"
+  },
+  {
+    title:"Mahanati",
+    category:"drama",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4I1BWO91FlGG0YX6jnVoZz3lrsTk48F867A&s",
+    video:"https://www.youtube.com/embed/OGPAVO1t2Cs"
+  },
+  {
+    title:"Evadu",
+    category:"thriller",
+    img:"https://m.media-amazon.com/images/M/MV5BYjIxNDk4YjMtOWZkNC00Mzk1LWEyYmMtMzU5MGQ1OWRmZGJmXkEyXkFqcGc@._V1_.jpg",
+    video:"https://www.youtube.com/embed/F6FrusMbjSg"
+  },
+  {
+    title:"Magadheera",
+    category:"action",
+    img:"https://m.media-amazon.com/images/M/MV5BMzQ0YWYyYjEtZTU2Ni00ZGZjLWJlZmQtYzliN2VlNDY0ZGE4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    video:"https://www.youtube.com/embed/OCGOdofzuB0"
+  },
+  {
+    title:"Eega",
+    category:"thriller",
+    img:"https://s.saregama.tech/image/c/fw_485/d/1a/15/eega.jpg",
+    video:"https://www.youtube.com/embed/01_8XnNolN4"
+  },
+  {
+    title:"Pokiri",
+    category:"action",
+    img:"https://m.media-amazon.com/images/M/MV5BNGEwOWUzNmYtYzE0MC00ZTk2LWI0NjAtMTIxMTRhMWQyYmU4XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    video:"https://www.youtube.com/embed/Tw1bK4GxWcM"
+  },
+  {
+    title:"Athadu",
+    category:"thriller",
+    img:"https://upload.wikimedia.org/wikipedia/en/e/ee/Athadu_Poster.jpg",
+    video:"https://www.youtube.com/embed/KWt9dzrc1Go"
+  },
+  {
+    title:"Gabbar Singh",
+    category:"action",
+    img:"https://m.media-amazon.com/images/M/MV5BMzJhNWRlZGItNmQyZS00NzZiLWJjY2EtMTE0YWE2ZWNkYWI1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    video:"https://www.youtube.com/embed/ZguO-71QAyA"
+  },
+  {
+    title:"Srimanthudu",
+    category:"drama",
+    img:"https://m.media-amazon.com/images/S/pv-target-images/86f65c4a0aa3225b9788a32c1871dff823d79274e175f1ecabcca5681883428f.jpg",
+    video:"https://www.youtube.com/embed/EZGapI7yjh4"
+  },
+  {
+    title:"Janatha Garage",
+    category:"drama",
+    img:"https://m.media-amazon.com/images/M/MV5BNGUyN2ZiOGYtYmFjNi00NGVkLThlMzEtMjdlOGE0ZTgzZGFlXkEyXkFqcGc@._V1_.jpg",
+    video:"https://www.youtube.com/embed/q6voJ13asIo"
+  },
+  {
+    title:"Goodachari",
+    category:"thriller",
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmxbo0JGQku4gbyoWhQTAkExAdyXF2SmFSiQ&s",
+    video:"https://www.youtube.com/embed/lysoF97MOMk"
+  },
+  {
+    title:"Agent Sai Srinivasa Athreya",
+    category:"thriller",
+    img:"https://cinephilsamigo.wordpress.com/wp-content/uploads/2019/08/agent-sai-srinivasa-athreya_154165303300.jpg",
+    video:"https://www.youtube.com/embed/IYxFSCX9hyg"
+  },
+  {
+    title:"Karthikeya",
+    category:"thriller",
+    img:"https://m.media-amazon.com/images/M/MV5BNjQyM2RlNGMtZmE2Yi00NjQ4LTgwMmQtZWY1MjU3M2E4ZDhjXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    video:"https://www.youtube.com/embed/MiWokt3YWVc"
+  }
+];
+
+
+const movieGrid = document.getElementById("movieGrid");
+const player = document.getElementById("player");
+const videoPlayer = document.getElementById("videoPlayer");
+const playerTitle = document.getElementById("playerTitle");
+
+function displayMovies(list){
+  movieGrid.innerHTML="";
+  list.forEach(movie=>{
+    const card=document.createElement("div");
+    card.className="movie-card";
+    card.innerHTML=`<img src="${movie.img}"><p>${movie.title}</p>`;
+    card.onclick=()=>playMovie(movie);
+    movieGrid.appendChild(card);
+  });
+}
+
+function playMovie(movie){
+  videoPlayer.src = movie.video + "?autoplay=1";
+  playerTitle.innerText = movie.title;
+  player.style.display="flex";
+}
+
+function closePlayer(){
+  videoPlayer.src="";
+  player.style.display="none";
+}
+
+function filterMovies(category,el){
+  document.querySelectorAll("nav span").forEach(n=>n.classList.remove("active"));
+  el.classList.add("active");
+  category==="all" ? displayMovies(movies) : displayMovies(movies.filter(m=>m.category===category));
+}
+
+displayMovies(movies);
+</script>
+
+</body>
+</html>
